@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wheel of Names</title>
+  <title>Weighted Wheel of Names</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -11,11 +11,11 @@
       --card-border: #334155;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --accent-primary: #6366f1;
-      --accent-hover: #4f46e5;
+      --accent-primary: #f97316;
+      --accent-hover: #ea580c;
       --accent-danger: #ef4444;
       --accent-danger-hover: #dc2626;
-      --shadow-color: rgba(0, 0, 0, 0.35);
+      --shadow-color: rgba(0, 0, 0, 0.4);
     }
 
     * {
@@ -45,7 +45,7 @@
     header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #818cf8, #c084fc);
+      background: linear-gradient(135deg, #f97316, #eab308);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -88,6 +88,12 @@
       color: var(--text-muted);
     }
 
+    .input-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
     textarea {
       width: 100%;
       flex: 1;
@@ -97,7 +103,7 @@
       border-radius: 8px;
       padding: 0.75rem;
       color: var(--text-main);
-      font-family: inherit;
+      font-family: monospace;
       font-size: 0.95rem;
       line-height: 1.5;
       resize: none;
@@ -172,9 +178,9 @@
       height: 0;
       border-left: 18px solid transparent;
       border-right: 18px solid transparent;
-      border-top: 32px solid #f43f5e;
+      border-top: 32px solid #ef4444;
       z-index: 10;
-      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
     }
 
     /* Center Spin Button */
@@ -186,21 +192,21 @@
       width: 86px;
       height: 86px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      background: linear-gradient(135deg, #f97316, #dc2626);
       color: white;
       border: 4px solid #ffffff;
       font-weight: 800;
       font-size: 1.1rem;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
       z-index: 5;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
       user-select: none;
     }
 
     .spin-btn:hover:not(:disabled) {
       transform: translate(-50%, -50%) scale(1.08);
-      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 6px 24px rgba(249, 115, 22, 0.6);
     }
 
     .spin-btn:disabled {
@@ -213,7 +219,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background-color: rgba(15, 23, 42, 0.75);
+      background-color: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(4px);
       display: flex;
       justify-content: center;
@@ -231,13 +237,13 @@
 
     .modal-card {
       background-color: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid #f97316;
       border-radius: 16px;
       padding: 2.5rem;
       width: 90%;
       max-width: 420px;
       text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 30px rgba(249, 115, 22, 0.4);
       transform: scale(0.9);
       transition: transform 0.3s ease;
     }
@@ -255,9 +261,10 @@
     }
 
     .modal-card .winner-name {
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       font-weight: 800;
-      color: #38bdf8;
+      color: #fbbf24;
+      text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
       word-break: break-word;
       margin-bottom: 1.5rem;
     }
@@ -289,15 +296,14 @@
       background-color: var(--accent-hover);
     }
 
-    /* Confetti Overlay Canvas */
-    #confettiCanvas {
+    /* Fire Canvas Overlay */
+    #fireCanvas {
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 99;
     }
 
-    /* Responsive Design */
     @media (max-width: 850px) {
       .app-container {
         grid-template-columns: 1fr;
@@ -324,19 +330,20 @@
 <body>
 
   <header>
-    <h1>Wheel of Names</h1>
+    <h1>Weighted Wheel of Names</h1>
     <span style="font-size: 0.85rem; color: var(--text-muted);">Press <strong>Spacebar</strong> to spin</span>
   </header>
 
   <div class="app-container">
-    <!-- Sidebar Left -->
     <section class="sidebar">
       <div class="sidebar-header">
-        <h2>List of Names</h2>
-        <span class="name-count" id="nameCount">0 names</span>
+        <h2>List & Weights</h2>
+        <span class="name-count" id="nameCount">0 entries</span>
       </div>
+      
+      <p class="input-hint">Format: <code>Name, Weight</code> (e.g., <code>Alice, 3</code> or <code>Bob</code> for default weight 1).</p>
 
-      <textarea id="namesInput" placeholder="Enter names here (one per line)..." spellcheck="false"></textarea>
+      <textarea id="namesInput" placeholder="Alice, 2&#10;Bob, 1&#10;Borja, 3" spellcheck="false"></textarea>
 
       <div class="action-buttons">
         <button class="btn" id="shuffleBtn">Shuffle</button>
@@ -345,7 +352,6 @@
       </div>
     </section>
 
-    <!-- Wheel Section Right -->
     <main class="wheel-section">
       <div class="canvas-wrapper">
         <div class="pointer"></div>
@@ -355,34 +361,32 @@
     </main>
   </div>
 
-  <!-- Winner Modal -->
   <div class="modal-overlay" id="winnerModal">
     <div class="modal-card">
-      <h3>We have a winner!</h3>
+      <h3>🔥 Winner Selected! 🔥</h3>
       <div class="winner-name" id="winnerNameDisplay">---</div>
       <div class="modal-actions">
-        <button class="btn btn-danger" id="removeWinnerBtn">Remove Name</button>
+        <button class="btn btn-danger" id="removeWinnerBtn">Remove Entry</button>
         <button class="btn btn-primary" id="closeModalBtn">Keep / Close</button>
       </div>
     </div>
   </div>
 
-  <canvas id="confettiCanvas"></canvas>
+  <canvas id="fireCanvas"></canvas>
 
   <script>
-    // --- Application State ---
     const PALETTE = [
       '#EF4444', '#F97316', '#F59E0B', '#10B981', 
       '#06B6D4', '#3B82F6', '#6366F1', '#8B5CF6', 
       '#EC4899', '#14B8A6', '#84CC16', '#A855F7'
     ];
 
-    let names = [];
-    let currentRotation = 0; // In radians
+    let items = []; // Array of { name: string, weight: number, rawLine: string }
+    let totalWeight = 0;
+    let currentRotation = 0;
     let isSpinning = false;
     let winningIndex = -1;
 
-    // --- DOM Elements ---
     const namesInput = document.getElementById('namesInput');
     const nameCount = document.getElementById('nameCount');
     const shuffleBtn = document.getElementById('shuffleBtn');
@@ -397,11 +401,9 @@
     const removeWinnerBtn = document.getElementById('removeWinnerBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
 
-    // --- Initial Setup ---
-    const defaultNames = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "George", "Hannah"];
-    namesInput.value = defaultNames.join('\n');
+    // Default list
+    namesInput.value = "Alice, 1\nBob, 2\nBorja, 3\nDiana, 1\nEthan, 1";
 
-    // --- High DPI Canvas Resize ---
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -413,44 +415,62 @@
 
     window.addEventListener('resize', resizeCanvas);
 
-    // --- Name List Handling ---
-    function updateNamesFromInput() {
-      names = namesInput.value
-        .split('\n')
-        .map(n => n.trim())
-        .filter(n => n.length > 0);
+    function parseInput() {
+      const lines = namesInput.value.split('\n');
+      items = [];
+      totalWeight = 0;
 
-      nameCount.textContent = `${names.length} name${names.length === 1 ? '' : 's'}`;
-      spinBtn.disabled = isSpinning || names.length === 0;
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        const parts = trimmed.split(/[,:]/);
+        const name = parts[0].trim();
+        let weight = 1;
+
+        if (parts.length > 1) {
+          const parsedWeight = parseFloat(parts[1].trim());
+          if (!isNaN(parsedWeight) && parsedWeight > 0) {
+            weight = parsedWeight;
+          }
+        }
+
+        if (name) {
+          items.push({ name, weight, rawLine: trimmed });
+          totalWeight += weight;
+        }
+      });
+
+      nameCount.textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
+      spinBtn.disabled = isSpinning || items.length === 0;
       drawWheel();
     }
 
-    namesInput.addEventListener('input', updateNamesFromInput);
+    namesInput.addEventListener('input', parseInput);
 
     shuffleBtn.addEventListener('click', () => {
       if (isSpinning) return;
-      for (let i = names.length - 1; i > 0; i--) {
+      for (let i = items.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [names[i], names[j]] = [names[j], names[i]];
+        [items[i], items[j]] = [items[j], items[i]];
       }
-      namesInput.value = names.join('\n');
-      updateNamesFromInput();
+      namesInput.value = items.map(item => item.rawLine).join('\n');
+      parseInput();
     });
 
     sortBtn.addEventListener('click', () => {
       if (isSpinning) return;
-      names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-      namesInput.value = names.join('\n');
-      updateNamesFromInput();
+      items.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+      namesInput.value = items.map(item => item.rawLine).join('\n');
+      parseInput();
     });
 
     clearBtn.addEventListener('click', () => {
       if (isSpinning) return;
       namesInput.value = '';
-      updateNamesFromInput();
+      parseInput();
     });
 
-    // --- Wheel Rendering ---
     function drawWheel() {
       const rect = canvas.getBoundingClientRect();
       const width = rect.width;
@@ -461,8 +481,7 @@
 
       ctx.clearRect(0, 0, width, height);
 
-      if (names.length === 0) {
-        // Draw empty state
+      if (items.length === 0 || totalWeight === 0) {
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
         ctx.fillStyle = '#334155';
@@ -479,19 +498,19 @@
         return;
       }
 
-      const sliceAngle = (2 * Math.PI) / names.length;
+      let cumulativeAngle = currentRotation;
 
-      names.forEach((name, i) => {
-        const startAngle = currentRotation + i * sliceAngle;
-        const endAngle = startAngle + sliceAngle;
+      items.forEach((item, i) => {
+        const sliceAngle = (item.weight / totalWeight) * (2 * Math.PI);
+        const startAngle = cumulativeAngle;
+        const endAngle = cumulativeAngle + sliceAngle;
 
-        // Choose color (ensure last item doesn't duplicate first if odd wrap)
         let colorIndex = i % PALETTE.length;
-        if (i === names.length - 1 && colorIndex === 0 && names.length > 1) {
+        if (i === items.length - 1 && colorIndex === 0 && items.length > 1) {
           colorIndex = 1;
         }
 
-        // Draw Slice
+        // Slice path
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -502,7 +521,7 @@
         ctx.strokeStyle = '#0f172a';
         ctx.stroke();
 
-        // Draw Text
+        // Text rendering
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(startAngle + sliceAngle / 2);
@@ -510,25 +529,27 @@
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#FFFFFF';
 
-        // Scale font dynamically based on total slices
-        const fontSize = Math.min(20, Math.max(11, Math.floor(260 / names.length)));
+        const fontSize = Math.min(22, Math.max(10, Math.floor(180 * (item.weight / totalWeight))));
         ctx.font = `700 ${fontSize}px system-ui`;
 
-        // Truncate text if necessary
+        const label = item.weight !== 1 ? `${item.name} (${item.weight})` : item.name;
         const maxTextWidth = radius * 0.65;
-        let formattedName = name;
-        if (ctx.measureText(formattedName).width > maxTextWidth) {
-          while (formattedName.length > 0 && ctx.measureText(formattedName + '…').width > maxTextWidth) {
-            formattedName = formattedName.slice(0, -1);
+        let formattedText = label;
+
+        if (ctx.measureText(formattedText).width > maxTextWidth) {
+          while (formattedText.length > 0 && ctx.measureText(formattedText + '…').width > maxTextWidth) {
+            formattedText = formattedText.slice(0, -1);
           }
-          formattedName += '…';
+          formattedText += '…';
         }
 
-        ctx.fillText(formattedName, radius - 24, 0);
+        ctx.fillText(formattedText, radius - 24, 0);
         ctx.restore();
+
+        cumulativeAngle = endAngle;
       });
 
-      // Outer rim accent
+      // Outer border
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.lineWidth = 6;
@@ -536,43 +557,51 @@
       ctx.stroke();
     }
 
-    // --- Spin Logic & Mathematics ---
     function spin() {
-      if (isSpinning || names.length === 0) return;
+      if (isSpinning || items.length === 0) return;
 
       isSpinning = true;
       spinBtn.disabled = true;
 
-      const spinDuration = 4000; // 4 seconds
+      // Weighted Random Selection
+      const rand = Math.random() * totalWeight;
+      let acc = 0;
+      let selectedIdx = 0;
+
+      for (let i = 0; i < items.length; i++) {
+        acc += items[i].weight;
+        if (rand <= acc) {
+          selectedIdx = i;
+          break;
+        }
+      }
+
+      // Compute angles for target slice
+      let startWeightAcc = 0;
+      for (let i = 0; i < selectedIdx; i++) {
+        startWeightAcc += items[i].weight;
+      }
+
+      const sliceStartAngle = (startWeightAcc / totalWeight) * 2 * Math.PI;
+      const sliceAngle = (items[selectedIdx].weight / totalWeight) * 2 * Math.PI;
+      const sliceMidAngle = sliceStartAngle + sliceAngle / 2;
+
+      // Pointer is at 12 o'clock (1.5 * PI)
+      const pointerAngle = 1.5 * Math.PI;
+      let targetOffset = (pointerAngle - sliceMidAngle) % (2 * Math.PI);
+      if (targetOffset < 0) targetOffset += 2 * Math.PI;
+
+      const spinDuration = 4000;
       const startTime = performance.now();
       const startRotation = currentRotation;
-
-      // Calculate a random target slice
-      const sliceAngle = (2 * Math.PI) / names.length;
-      const chosenSlice = Math.floor(Math.random() * names.length);
-      
-      // Calculate landing angle so pointer at top (12 o'clock = 1.5 * PI) points directly into the chosen slice
-      const targetSliceCenter = (chosenSlice + 0.5) * sliceAngle;
-      const pointerAngle = 1.5 * Math.PI;
-      
-      // Compute final offset within 2*PI radians
-      let targetAngleOffset = (pointerAngle - targetSliceCenter) % (2 * Math.PI);
-      if (targetAngleOffset < 0) targetAngleOffset += 2 * Math.PI;
-
-      // Add 5 to 8 full revolutions for excitement
       const extraRotations = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-      
-      // Align final rotation strictly to targetAngleOffset
       const currentMod = startRotation % (2 * Math.PI);
-      const totalRotationNeeded = extraRotations + (targetAngleOffset - currentMod + 2 * Math.PI) % (2 * Math.PI);
+      const totalRotationNeeded = extraRotations + (targetOffset - currentMod + 2 * Math.PI) % (2 * Math.PI);
       const targetRotation = startRotation + totalRotationNeeded;
 
-      // Animation Loop with Easing (Ease-Out Quart)
       function animate(now) {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / spinDuration, 1);
-        
-        // Easing formula
         const easeOut = 1 - Math.pow(1 - progress, 4);
 
         currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
@@ -583,7 +612,7 @@
         } else {
           isSpinning = false;
           spinBtn.disabled = false;
-          calculateWinner();
+          winningIndex = selectedIdx;
           showWinnerModal();
         }
       }
@@ -591,23 +620,19 @@
       requestAnimationFrame(animate);
     }
 
-    function calculateWinner() {
-      const sliceAngle = (2 * Math.PI) / names.length;
-      
-      // Normalize wheel rotation to [0, 2*PI)
-      const normalizedRotation = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-      
-      // The pointer is at 12 o'clock (1.5 * PI = 270 deg)
-      const angleAtPointer = ((1.5 * Math.PI - normalizedRotation) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      
-      winningIndex = Math.floor(angleAtPointer / sliceAngle) % names.length;
-    }
-
-    // --- Modal & Celebratory Confetti ---
     function showWinnerModal() {
-      winnerNameDisplay.textContent = names[winningIndex];
+      let winningName = items[winningIndex].name;
+
+      // REQUIREMENT 2: Instant replacement if "Borja" is selected
+      if (winningName.trim().toLowerCase() === 'borja') {
+        winningName = 'Hugo';
+      }
+
+      winnerNameDisplay.textContent = winningName;
       winnerModal.classList.add('active');
-      triggerConfetti();
+      
+      // REQUIREMENT 3: Fire effect trigger
+      triggerFireEffect();
     }
 
     function hideWinnerModal() {
@@ -615,17 +640,16 @@
     }
 
     removeWinnerBtn.addEventListener('click', () => {
-      if (winningIndex >= 0 && winningIndex < names.length) {
-        names.splice(winningIndex, 1);
-        namesInput.value = names.join('\n');
-        updateNamesFromInput();
+      if (winningIndex >= 0 && winningIndex < items.length) {
+        items.splice(winningIndex, 1);
+        namesInput.value = items.map(item => item.rawLine).join('\n');
+        parseInput();
       }
       hideWinnerModal();
     });
 
     closeModalBtn.addEventListener('click', hideWinnerModal);
 
-    // Keybindings (Spacebar to spin)
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space' && document.activeElement !== namesInput) {
         e.preventDefault();
@@ -635,62 +659,80 @@
 
     spinBtn.addEventListener('click', spin);
 
-    // --- Built-in Particle Confetti Generator ---
-    const confettiCanvas = document.getElementById('confettiCanvas');
-    const cCtx = confettiCanvas.getContext('2d');
-    let confettiParticles = [];
+    // --- REQUIREMENT 3: Canvas Fire Particle Animation ---
+    const fireCanvas = document.getElementById('fireCanvas');
+    const fCtx = fireCanvas.getContext('2d');
+    let fireParticles = [];
+    let fireAnimationFrame;
 
-    function triggerConfetti() {
-      confettiCanvas.width = window.innerWidth;
-      confettiCanvas.height = window.innerHeight;
-      confettiParticles = [];
+    function triggerFireEffect() {
+      fireCanvas.width = window.innerWidth;
+      fireCanvas.height = window.innerHeight;
+      fireParticles = [];
 
-      for (let i = 0; i < 90; i++) {
-        confettiParticles.push({
-          x: window.innerWidth / 2,
-          y: window.innerHeight / 2 - 50,
-          vx: (Math.random() - 0.5) * 18,
-          vy: (Math.random() - 0.7) * 18,
-          size: Math.random() * 8 + 4,
-          color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-          rotation: Math.random() * 360,
-          rSpeed: (Math.random() - 0.5) * 10,
-          opacity: 1
+      // Spawn concentrated burst of fire particles
+      for (let i = 0; i < 220; i++) {
+        fireParticles.push({
+          x: window.innerWidth / 2 + (Math.random() - 0.5) * 160,
+          y: window.innerHeight / 2 + 80,
+          vx: (Math.random() - 0.5) * 7,
+          vy: -Math.random() * 12 - 4,
+          radius: Math.random() * 25 + 15,
+          life: 1.0,
+          decay: Math.random() * 0.02 + 0.015
         });
       }
-      requestAnimationFrame(updateConfetti);
+
+      cancelAnimationFrame(fireAnimationFrame);
+      updateFire();
     }
 
-    function updateConfetti() {
-      cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-      let alive = false;
+    function updateFire() {
+      fCtx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+      fCtx.globalCompositeOperation = 'lighter'; // Realistic fire blend mode
 
-      confettiParticles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.35; // gravity
-        p.opacity -= 0.012;
-        p.rotation += p.rSpeed;
+      let activeParticles = false;
 
-        if (p.opacity > 0) {
-          alive = true;
-          cCtx.save();
-          cCtx.translate(p.x, p.y);
-          cCtx.rotate((p.rotation * Math.PI) / 180);
-          cCtx.globalAlpha = Math.max(0, p.opacity);
-          cCtx.fillStyle = p.color;
-          cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-          cCtx.restore();
+      fireParticles.forEach(p => {
+        if (p.life > 0) {
+          activeParticles = true;
+          p.x += p.vx + (Math.random() - 0.5) * 2;
+          p.y += p.vy;
+          p.radius *= 0.96; // Shrink as it rises
+          p.life -= p.decay;
+
+          const alpha = Math.max(0, p.life);
+
+          // Color transition: White/Yellow -> Orange -> Red -> Smoke Fade
+          let r = 255, g = 0, b = 0;
+          if (p.life > 0.7) {
+            g = 255; b = 180; // Intense yellow/white flame core
+          } else if (p.life > 0.4) {
+            g = 140; b = 0; // Fire orange
+          } else {
+            g = 20; b = 0; // Dark red rim
+          }
+
+          const gradient = fCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, Math.max(1, p.radius));
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alpha})`);
+          gradient.addColorStop(1, `rgba(${r}, 0, 0, 0)`);
+
+          fCtx.beginPath();
+          fCtx.arc(p.x, p.y, Math.max(1, p.radius), 0, Math.PI * 2);
+          fCtx.fillStyle = gradient;
+          fCtx.fill();
         }
       });
 
-      if (alive) {
-        requestAnimationFrame(updateConfetti);
+      if (activeParticles) {
+        fireAnimationFrame = requestAnimationFrame(updateFire);
+      } else {
+        fCtx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
       }
     }
 
-    // Initialize application
-    updateNamesFromInput();
+    // Init
+    parseInput();
     resizeCanvas();
   </script>
 </body>
